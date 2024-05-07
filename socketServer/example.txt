@@ -1,0 +1,176 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+)
+
+type User struct {
+	name string
+	prev *User
+	next *User
+}
+
+var head *User = nil
+
+func headToStart() {
+	if head == nil {
+		return
+	} else {
+		for head.prev != nil {
+			head = head.prev
+		}
+	}
+}
+
+func headToEnd() {
+	for head.next != nil {
+		head = head.next
+	}
+}
+
+func list() {
+	headToStart()
+
+	fmt.Println("List of users")
+	fmt.Println("----------------")
+
+	if head != nil {
+
+		for head.next != nil {
+			fmt.Println(head.name)
+			head = head.next
+		}
+
+		if head.name != "" {
+
+			fmt.Println(head.name)
+		}
+	}
+
+	fmt.Println("----------------")
+}
+
+func menu() (option int) {
+
+	fmt.Println("Main Menu")
+	fmt.Println("----------------")
+
+	fmt.Println("1. Add only one user")
+	fmt.Println("2. Add multiple users")
+	fmt.Println("3. Remove")
+	fmt.Println("4. List")
+	fmt.Println("5. Clean list")
+	fmt.Println("6. Exit")
+
+	fmt.Println("----------------")
+
+	fmt.Print("Option: ")
+
+	fmt.Scanln(&option)
+
+	return
+}
+
+func addSomeStartingUser(names ...string) {
+
+	for _, n := range names {
+		newUser := &User{name: n}
+
+		if head == nil {
+			head = newUser
+		} else {
+			newUser.prev = head
+			head.next = newUser
+			head = newUser
+		}
+
+	}
+
+}
+
+func addUser(name string) {
+	newUser := &User{name: name}
+
+	if head == nil {
+		head = newUser
+	} else {
+		headToEnd()
+		newUser.prev = head
+		head.next = newUser
+		head = newUser
+	}
+
+}
+
+func removeUser(name string) {
+	headToStart()
+	for head.next != nil {
+		if head.name == name {
+			head.prev.next = head.next
+			head.next.prev = head.prev
+			return
+		}
+		head = head.next
+	}
+}
+
+func clean() {
+	headToStart()
+	for head.next != nil {
+		head = head.next
+		head.prev = nil
+	}
+	head = nil
+
+	fmt.Println("List cleaned")
+}
+
+func main() {
+
+	for op := menu(); op != 6; {
+		switch op {
+		case 1:
+			fmt.Print("Name: ")
+			var name string
+			fmt.Scanln(&name)
+			addUser(name)
+		case 2:
+			addScreen()
+		case 3:
+			list()
+			fmt.Print("Name: ")
+			var name string
+			fmt.Scanln(&name)
+			removeUser(name)
+		case 4:
+			list()
+		case 5:
+			clean()
+		case 6:
+			fmt.Println("Exit")
+		default:
+			fmt.Println("Invalid option")
+		}
+
+		op = menu()
+	}
+
+}
+
+func addScreen() {
+	fmt.Println("Digite os nomes dos usuários separados por vírgula:")
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	input := scanner.Text()
+
+	names := strings.Split(input, ",")
+
+	for i := range names {
+		names[i] = strings.TrimSpace(names[i])
+	}
+
+	addSomeStartingUser(names...)
+}

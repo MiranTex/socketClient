@@ -1,0 +1,10 @@
+$this->app->singleton(SocketClient::class, function($app){
+
+            $events = new \App\Modules\SocketClient\Events();
+
+            $socketClient = $events
+                            ->register()
+                            ->getClient();
+
+            return $socketClient;
+        });

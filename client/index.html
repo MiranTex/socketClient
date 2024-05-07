@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="client.js"></script>
+</head>
+<body>
+
+    <input type="text" id="event" >
+    <button onclick="emitEvent()">Emit</button>
+    
+    <script>
+        const client = new SocketClient();
+        client.init('ws://localhost:8080/socket');
+
+        const emitEvent = ()=>{
+
+            const event = document.getElementById('event').value
+            if(event){
+                console.log(client.emit(event))
+            }
+
+        }
+
+        
+        // setTimeout(() => {
+        //     client.emit('updateCalendar');
+        // }, 5000);
+
+        client.on('test1', ()=>{
+            console.log('test1')
+        })
+        client.on('test2', ()=>{
+            console.log('test2')
+        })
+        client.on('test3', ()=>{ 
+            console.log('test3')
+        })
+    </script>
+</body>
+</html>

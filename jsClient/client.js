@@ -1,9 +1,20 @@
 
-function SocketClient(){
+const createEvent = ({eventType, data, SenderId}) => {
+    return {
+        eventType: eventType,
+        data: data,
+        sender: SenderId
+    }
+}
+
+const createEventFromResposnse = (data) => createEvent(JSON.parse(data));
+
+function SocketClient(server, subscriptions){
     this.serverConnection = null;
     this.events = {};
 
-    this.init = (server = 'ws://localhost:8080/socket') => {
+
+    this.init = () => {
         
         this.serverConnection =  new WebSocket(server);
 
@@ -17,7 +28,8 @@ function SocketClient(){
 
             this.serverConnection.send(JSON.stringify({
                 id: this.id,
-                type: 'connection'
+                type: 'connection',
+                subscriptions: subscriptions
             }));
 
             if(this.tryingInterval != null){
@@ -30,17 +42,21 @@ function SocketClient(){
         }
 
         this.serverConnection.onmessage = (e) =>{
-            if(this.events[e.data]){
-                this.events[e.data]();
+            const event = createEventFromResposnse(e.data)
+    
+            if(this.events[event.eventType]){
+                
+                this.events[event.eventType](event);
             }
         }
     }
 
-    this.emit = (event) =>{
+    this.emit = (eventType, eventMessage={}) =>{
         this.serverConnection.send(JSON.stringify({
             id: this.id,
             type: 'event',
-            event: event
+            eventType: eventType,
+            eventMessage: eventMessage 
         }));
 
         return true;

@@ -5,15 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <script src="client.js"></script>
+
+    <style>
+        #mouse-pointer {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: red;
+            border-radius: 50%;
+            /* display: none; */
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+    </style>
 </head>
+
 <body>
+
+    <div id="points-container"></div>
 
     <input type="text" id="event" >
     <button onclick="emitEvent()">Emit</button>
     
     <script>
-        const client = new SocketClient();
-        client.init('ws://localhost:8080/socket');
+        
+        function updatePoint(x, y, sender) {
+            // 1. Criar container se não existir
+            let container = document.getElementById('points-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'points-container';
+                container.style.position = 'relative';
+                container.style.width = '100%';
+                container.style.height = '600px';
+                container.style.border = '1px solid #ccc';
+                document.body.appendChild(container);
+            }
+
+            // 2. Gerar cor única baseada no sender
+            const generateColor = (str) => {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                return `hsl($(hash % 360), 70%, 50%)`;
+            };
+
+            // 3. Criar/atualizar elementos
+            let point = document.getElementById(`point-${sender}`);
+            let label = document.getElementById(`label-${sender}`);
+            
+            if (!point) {
+                // Criar novos elementos
+                point = document.createElement('div');
+                point.id = `point-${sender}`;
+                point.style.position = 'absolute';
+                point.style.width = '10px';
+                point.style.height = '10px';
+                point.style.borderRadius = '50%';
+                point.style.backgroundColor = generateColor(sender);
+                point.style.transform = 'translate(-50%, -50%)';
+
+                label = document.createElement('div');
+                label.id = `label-${sender}`;
+                label.textContent = sender;
+                label.style.position = 'absolute';
+                label.style.fontSize = '12px';
+                label.style.transform = 'translate(10px, -20px)';
+
+                container.appendChild(point);
+                container.appendChild(label);
+            }
+
+            // 4. Atualizar posições
+            point.style.left = `${x}px`;
+            point.style.top = `${y}px`;
+            label.style.left = `${x}px`;
+            label.style.top = `${y}px`;
+        }
+
+
+        const client = new SocketClient('ws://localhost:8082/socket',['test1','javraevent','mousemove']);
+        client.init();
 
         const emitEvent = ()=>{
 
@@ -24,19 +103,31 @@
 
         }
 
-        
-        // setTimeout(() => {
-        //     client.emit('updateCalendar');
-        // }, 5000);
-
         client.on('test1', ()=>{
             console.log('test1')
         })
-        client.on('test2', ()=>{
-            console.log('test2')
+        client.on('javraevent', ()=>{
+            console.log('javraevent')
         })
         client.on('test3', ()=>{ 
             console.log('test3')
+        })
+
+        // document.addEventListener('mousemove', (e)=>{
+        //     client.emit('mousemove', {x:e.clientX, y:e.clientY})
+        // })
+
+        client.on('mousemove', (event)=>{
+            const {x, y} = event.data;
+
+            const sender = event.sender;
+            
+            updatePoint(x,y, sender);
+
+            // const pointer = document.getElementById('mouse-pointer');
+            // pointer.style.left = `${x}px`;
+            // pointer.style.top = `${y}px`;
+            // pointer.style.display = 'block';
         })
     </script>
 </body>

@@ -8,7 +8,7 @@ func main() {
 
 	router := r.InitRouter()
 
-	router.Run(":8080")
+	router.Run(":8081")
 
 	// http.HandleFunc("/socket", socket.Handler)
 	// log.Fatal(http.ListenAndServe(":8080", nil))

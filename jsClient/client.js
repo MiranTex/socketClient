@@ -9,9 +9,13 @@ const createEvent = ({eventType, data, SenderId}) => {
 
 const createEventFromResposnse = (data) => createEvent(JSON.parse(data));
 
-function SocketClient(server, subscriptions){
+function SocketClient(server, subscriptions, publicKey, accessToken) {
     this.serverConnection = null;
     this.events = {};
+    
+    this.publicKey = publicKey;
+    this.accessToken = accessToken;
+    
 
 
     this.init = () => {
@@ -20,15 +24,11 @@ function SocketClient(server, subscriptions){
 
         this.serverConnection.onopen = (e) => {
 
-            const generateUniqueId = () => {
-                return Math.random().toString(36).substr(2, 9);
-            };            
-
-            this.id = generateUniqueId();
-
             this.serverConnection.send(JSON.stringify({
                 id: this.id,
                 type: 'connection',
+                clusterPublicId: this.publicKey,
+                accessToken: this.accessToken,
                 subscriptions: subscriptions
             }));
 
@@ -42,6 +42,13 @@ function SocketClient(server, subscriptions){
         }
 
         this.serverConnection.onmessage = (e) =>{
+
+            if(e.data == 'connection'){
+                console.log(e.data);
+                
+                return;
+            }
+            
             const event = createEventFromResposnse(e.data)
     
             if(this.events[event.eventType]){
@@ -49,14 +56,30 @@ function SocketClient(server, subscriptions){
                 this.events[event.eventType](event);
             }
         }
+
+        this.on('connection', (event) => {
+            this.id = event.data.id;
+
+            console.log(this.id);
+            
+        })
     }
 
     this.emit = (eventType, eventMessage={}) =>{
+
+        if(this.id == null){
+            alert('Connection not established');
+            return false;
+        }
+
         this.serverConnection.send(JSON.stringify({
             id: this.id,
             type: 'event',
             eventType: eventType,
-            eventMessage: eventMessage 
+            eventMessage: eventMessage,
+            clusterPublicId: this.publicKey,
+            accessToken: this.accessToken,
+
         }));
 
         return true;

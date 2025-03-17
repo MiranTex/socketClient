@@ -91,7 +91,12 @@
         }
 
 
-        const client = new SocketClient('ws://localhost:8082/socket',['test1','javraevent','mousemove']);
+        const client = new SocketClient(
+            'ws://localhost:8082/socket',
+            ['test1','javraevent','mousemove'],
+            'aplussocket',
+            '1234'
+        );
         client.init();
 
         const emitEvent = ()=>{
